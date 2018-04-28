@@ -1,0 +1,6 @@
+{
+  "name": "eindbazen-fe",
+  "short_name": "eindbazen-fe",
+  "start_url": "/",
+  "display": "standalone"
+}
