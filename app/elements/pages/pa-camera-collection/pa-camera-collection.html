@@ -1,0 +1,26 @@
+<link rel="import" href="widgets/pa-cameras.html">
+
+<dom-module id="pa-camera-collection">
+  <template>
+    <style include="shared-styles"></style>
+    <iron-ajax url="cameras.json" last-response="{{cameras}}" auto></iron-ajax>
+    <pa-cameras cameras="{{cameras}}" cols="{{cols}}"></pa-cameras>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'pa-camera-collection',
+
+        properties: {
+          cameras: {
+            type: Array
+          }
+        }
+      });
+    })();
+  </script>
+
+</dom-module>

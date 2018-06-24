@@ -1,0 +1,37 @@
+{
+  "name": "websocket-component",
+  "version": "2.1.2",
+  "homepage": "https://github.com/wburgers/websocket-component",
+  "description": "A websocket element wrapper",
+  "keywords": [
+    "web-components"
+  ],
+  "main": "websocket-component.html",
+  "authors": [
+    "Willem Burgers"
+  ],
+  "license": "BSD",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "_release": "2.1.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.1.2",
+    "commit": "3b36d62f3cd70a87319e3ce64be00b588f396b6a"
+  },
+  "_source": "https://github.com/wburgers/websocket-component.git",
+  "_target": "^2.1.2",
+  "_originalSource": "websocket-component",
+  "_direct": true
+}

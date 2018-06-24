@@ -18,7 +18,8 @@
     "todomvc-common": "~1.0.2",
     "todomvc-app-css": "~2.0.1",
     "iron-selector": "polymerelements/iron-selector#~1.0.5",
-    "firebase-element": "GoogleWebComponents/firebase-element#~1.0.6"
+    "firebase-element": "GoogleWebComponents/firebase-element#~1.0.6",
+    "app-media": "PolymerElements/app-media#^0.10.1"
   },
   "devDependencies": {
     "web-component-tester": "*",

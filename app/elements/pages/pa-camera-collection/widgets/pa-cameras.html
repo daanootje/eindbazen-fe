@@ -1,0 +1,26 @@
+<link rel="import" href="pa-camera.html">
+
+<dom-module id="pa-cameras">
+  <template>
+    <style include="shared-styles"></style>
+
+    <pa-simple-grid sm-cols="1" md-cols$='{{cols}}'>
+
+      <template is="dom-repeat" items="{{cameras}}">
+        <pa-camera camera="{{item}}"></pa-camera>
+      </template>
+
+    </pa-simple-grid>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'pa-cameras'
+      });
+    })();
+  </script>
+
+</dom-module>

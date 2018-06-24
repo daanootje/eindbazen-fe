@@ -1,0 +1,45 @@
+<link rel="import" href="../../../../bower_components/app-media/app-media-video.html">
+
+<dom-module id="pa-camera">
+  <template>
+    <style include="shared-styles"></style>
+
+    <paper-material class="camera" elevation="1">
+      <h3 align="center">{{ camera.title }}</h3>
+      <div>
+        <!-- Device is connected to the media stream.... -->
+        <app-media-stream
+          video-device={{camera.url}}
+          stream="{{stream}}"
+          active>
+        </app-media-stream>
+
+        <!-- ...media stream is connected to the video output... -->
+        <app-media-video
+          id="video"
+          source="[[stream]]"
+          on-click="doNothing"
+          autoplay="true"
+          muted="true"
+          mirror="false">
+        </app-media-video>
+
+      </div>
+    </paper-material>
+
+  </template>
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'pa-camera',
+
+        doNothing: function() {
+        }
+
+      });
+    })();
+  </script>
+
+</dom-module>

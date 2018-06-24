@@ -1,0 +1,85 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="stomp-client">
+  <template>
+    <style>
+      :host {
+        display: none;
+      }
+    </style>
+  </template>
+  <script src="../sockjs/sockjs.min.js"></script>
+  <script src="../stomp-websocket/lib/stomp.min.js"></script>
+  <script>
+
+	  class StompClient extends Polymer.Element {
+
+		  socket=null
+
+	  	  static get is() { return 'stomp-client'; }
+
+		  static get properties() {
+			  return {
+					  protocol: {
+						  type: String,
+						  notify:true
+					  },
+					  url: {
+						  type: String,
+						  notify: true
+					  },
+					  topic: {
+						  type: String,
+						  notify: true
+					  }
+
+			  };
+		  }
+
+		  _handleEvent(event) {
+			  this.fire('message', event.detail);
+			  console.log(event.detail);
+		  }
+
+		  send(message) {
+			  if(this.socket)
+				  this.socket.send(message);
+		  }
+
+		  close() {
+			  if(this.socket)
+				  this.socket.close();
+		  }
+
+		  connect () {
+
+			  if(this.socket)
+				  this.close();
+
+			  if(!this.url || !this.topic)
+				  return;
+
+			  this.socket = new SockJS(this.url);
+			  const stompClient = Stomp.over(this.socket)
+			  const topic = this.topic
+			  const element = this
+
+			  stompClient.connect({}, function() {
+
+				  stompClient.subscribe(topic, function(message){
+					  const parsedMessage = JSON.parse(message.body)
+					  const event = new CustomEvent('message', {'detail': parsedMessage})
+					  element._handleEvent(event);
+				  });
+
+			  });
+		  }
+
+
+	  }
+
+	  window.customElements.define(StompClient.is, StompClient);
+
+
+  </script>
+</dom-module>

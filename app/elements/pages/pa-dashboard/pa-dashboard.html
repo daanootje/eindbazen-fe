@@ -5,7 +5,8 @@
 
 <dom-module id="pa-dashboard">
   <template>
-    <style include="shared-styles"></style>
+    <style include="shared-styles">
+    </style>
 
     <pa-simple-grid sm-cols="1" md-cols$='{{cols}}'>
 
@@ -38,7 +39,7 @@
             type: Array,
             value: {
               comboChart: {
-                title: 'Combo Chart',
+                title: 'Cameras',
                 component: 'pa-combo-chart'
               },
               news: {

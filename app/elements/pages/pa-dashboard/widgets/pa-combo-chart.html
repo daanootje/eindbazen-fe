@@ -5,79 +5,28 @@
 <link rel="import" href="../../../../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
 <link rel="import" href="../../../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../../../bower_components/iron-list/iron-list.html">
-<dom-module id="pa-combo-chart">
+<dom-module id="pa-combo-chart" style="width:100%">
   <template>
     <style>
         :host {
-          display: block;
-          @apply(--paper-font-common-base);
+            display: block;
+            margin: 8px 0;
+            padding: 0;
         }
-
-        app-header {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 1;
-          background-color: #4285f4;
-          color: white;
-        }
-
         iron-list {
-          margin-top: 90px;
-          padding-bottom: 16px;
+          width:100%
         }
 
-        .photoContent {
+        .cameraContent {
           @apply(--layout);
           background-color: #ddd;
-          position: relative;
-          width: 300px;
-          height: 300px;
-          margin: 8px;
+          width: 10000%;
+          height: 50px;
+          margin: 1px;
         }
 
-        .photoContent:hover .detail{
-          opacity: 1;
-        }
-
-        .photoContent > iron-image {
+        .cameraContent > iron-image {
           @apply(--layout-flex);
-        }
-
-        .photoContent > .detail {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
-          color: white;
-          font-size: 20px;
-          font-weight: 100;
-          padding: 20px;
-          opacity: 0;
-          transition: opacity 0.1s;
-        }
-
-        .searchInput {
-          @apply(--layout-flex);
-          font-size: 18px;
-          padding: 10px 20px;
-          border: none;
-          background-color: rgba(255, 255, 255, 0.2);
-          color: white;
-           -webkit-appearance: none;
-          border-radius: 0px;
-        }
-
-        .searchInput:hover {
-          background-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .searchInput:focus {
-          background-color: white;
-          outline: none;
-          color: black;
         }
 
         .loadingIndicator {
@@ -91,75 +40,18 @@
           vertical-align: middle;
         }
 
-        @media (max-width: 800px) {
-          .photoContainer {
-            width: calc(50% - 16px);
-          }
-
-          .photoContent {
-            width: auto;
-          }
-        }
-
-        @media (max-width: 400px) {
-          iron-list {
-            margin-top: 72px;
-          }
-
-          .photoContainer {
-            width: 100%;
-          }
-
-          .photoContent > .detail {
-            opacity: 1;
-          }
-        }
-
-        ::-webkit-input-placeholder {
-          color: rgba(255, 255, 255, 0.5);
-        }
-
-        ::-moz-placeholder {
-          color: rgba(255, 255, 255, 0.5);
-        }
-
-        :-ms-input-placeholder {
-          color: rgba(255, 255, 255, 0.5);
-        }
-
-        ::-ms-input-placeholder {
-          color: rgba(255, 255, 255, 0.5);
-        }
       </style>
-    <iron-ajax id="ajax" loading="{{loadingPhotos}}" url="[[_getAPIEndpoint(apiKey, searchText, page)]]"
-               handle-as="text" on-response="_didReceiveResponse"></iron-ajax>
-
-    <app-header fixed effects="waterfall">
-      <app-toolbar>
-        <input class="searchInput" type="search" placeholder="Search on Flikr" value="{{searchText::input}}">
-      </app-toolbar>
-    </app-header>
-    <iron-list items="[[photos]]" as="photo" scroll-target="document" grid>
+    <iron-ajax url="cameras.json" last-response="{{cameras}}" auto></iron-ajax>
+    <iron-list items="[[cameras]]" as="camera" scroll-target="document" grid>
       <template>
-        <div class="photoContainer">
-          <div class="photoContent" tabindex$="[[tabIndex]]">
-            <iron-image sizing="cover"
-                        src="//farm[[photo.farm]].staticflickr.com/[[photo.server]]/[[photo.id]]_[[photo.secret]]_n.jpg">
+        <div class="camera">
+          <div class="cameraContent" tabindex$="[[tabIndex]]">
+            <iron-image sizing="cover" src="http://www.tcgreenmedia.com/wp-content/uploads/[[camera.path]]">
             </iron-image>
-            <div class="detail">[[photo.title]]</div>
           </div>
         </div>
       </template>
     </iron-list>
-    <div class="loadingIndicator" hidden$="[[!loadingPhotos]]">
-      <paper-spinner active$="[[loadingPhotos]]"></paper-spinner> Fetching photos for <b>[[searchText]]</b>
-    </div>
-    <!-- this element loads more photos when the user scrolls down and reached the lower threshold -->
-    <iron-scroll-threshold id="scrollTheshold"
-                           lower-threshold="500"
-                           on-lower-threshold="_onLowerThreshold"
-                           scroll-target="document">
-    </iron-scroll-threshold>
   </template>
   <script>
     (function() {
@@ -169,81 +61,34 @@
         is: 'pa-combo-chart',
 
         properties: {
-
-          apiKey: {
-            type: String,
-            value: 'c304f1096a06486d3c1e7ab271bf7f3f'
+          cameras: {
+            type: Array
           },
 
-          photos: Array,
-
-          perPage: {
-            type: Number,
-            value: 100
-          },
-
-          page: {
-            type: Number,
-            value: 0
-          },
-
-          searchText: {
-            type: String,
-            value: 'Big Sur'
+          itemsPerRow: {
+           value: 4
           },
 
           loadingPhotos: Boolean
         },
 
-        observers: [
-          '_resetPhotos(searchText)'
-        ],
-
-        _getAPIEndpoint: function(apiKey, searchText, page) {
-          return 'https://api.flickr.com/services/rest/?method=flickr.photos.search' +
-              '&api_key=' + apiKey +
-              '&safe_search=1&sort=interestingness-desc'+
-              '&text=' + encodeURIComponent(searchText) +
-              '&page=' + page +
-              '&format=json' +
-              '&per_page=' + this.perPage;
-        },
-
-        _didReceiveResponse: function(e) {
-          var payload = JSON.parse(e.detail.response.match('jsonFlickrApi\\((.*)\\)')[1]);
-          console.log('PAYLOAD');
-          console.log(payload);
-          if (!payload || !payload.photos || !payload.photos.photo) {
-            return;
+        _computeSlicedItems: function (items, itemsPerRow) {
+          if (itemsPerRow < 1) {
+             // Forces at least one item per row. It makes no sense otherwise.
+             itemsPerRow = 1;
           }
-
-          payload.photos.photo.forEach(function(photo) {
-            this.push('photos', photo);
-          }, this);
-
-          this.$.scrollTheshold.clearTriggers();
-        },
-
-        _onLowerThreshold: function() {
-          this.debounce('_loadPhotos', this._loadMorePhotos, 60);
-        },
-
-        _loadMorePhotos: function() {
-          if (this.$.ajax.lastRequest) {
-            this.$.ajax.lastRequest.abort();
-          }
-          this.page++;
-          this.$.ajax.generateRequest();
-        },
-
-        _resetPhotos: function(searchText) {
-          this.page = 0;
-          this.photos = [];
-
-          if (searchText.trim() !== '') {
-            this.debounce('_loadPhotos', this._loadMorePhotos, 400);
+          if (items && items.length > 0) {
+             var result = [];
+             for (var i = 0; i < items.length; i += itemsPerRow)       {
+                 result.push(items.slice(i, i + itemsPerRow));
+             }
+             return result;
+          } else {
+             return [];
           }
         }
+
+
       });
     })();
   </script>

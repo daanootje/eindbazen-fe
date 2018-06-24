@@ -1,0 +1,105 @@
+<link rel="import" href="../../../../bower_components/web-socket/web-socket.html">
+<link rel="import" href="../../../../bower_components/stomp-client/stomp-client.html">
+<!--<link rel="import" href="../../../../bower_components/time-display/time-display.html">-->
+
+<dom-module id="pa-time-display">
+  <template>
+    <style include="shared-styles"></style>
+
+    <div>
+      <!--<web-socket id="websocket"-->
+                  <!--url="ws://127.0.0.1:8080/endpoint_time"-->
+                  <!--auto-->
+                  <!--on-open="_changeText"-->
+                  <!--on-message="_onMessage"-->
+                  <!--on-error="_onErrorMessage">-->
+      <!--</web-socket>-->
+
+      <stomp-client
+        id="stomp"
+        url="http://localhost:8080/endpoint_time"
+        topic="/topic/time">
+      </stomp-client>
+
+      <iron-ajax
+        id="myAjax1"
+        auto
+        url="http://localhost:8080/room/ports"
+        handle-as="json"
+        on-response="handleResponse"
+        debounce-duration="300"></iron-ajax>
+
+      <!--<time-display id="time" datetime="2016-08-23T12:00:00.00" format="hh mm ss"></time-display>-->
+
+      <div class="vertical-section">
+        <paper-input id="testButton" label="label" val></paper-input>
+
+        <paper-input id="testInput" bind-value="{{test}}" value="{{test}}" label="Sweet Label"></paper-input>
+
+        <paper-button id="msbutton" on-click="send">Modify</paper-button>
+
+      </div>
+
+    </div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'pa-time-display',
+
+        properties: {
+          test: {
+            type: String,
+            value: "",
+            notify: true
+          }
+        },
+
+        _addWebsocketMessage(event) {
+          console.log('Message received from echo websocket server:', event.detail.data);
+
+          this.time = 2000;
+        },
+
+        _sendWebsocketMessage(event) {
+          console.log('Message received from echo websocket server:', event.detail.data);
+          this.time = 7657000;
+        },
+
+        _onMessage: function (event) {
+          var text = this.$.testButton;
+          text.value = event.detail;
+        },
+
+        _onErrorMessage: function (event) {
+          var text = this.$.testButton;
+          text.value = 'ERROR';
+            var button = this.$.msbutton;
+            button.textContent = 'ERROR';
+        },
+
+        handleResponse: function (event) {
+          var text = this.$.testButton;
+          text.value = event.detail;
+          console.log(event);
+        },
+
+        _changeText: function() {
+          var text = this.$.testButton;
+          text.value = 'OPEN';
+        },
+
+
+        send: function () {
+          var text = this.$.testInput.value;
+
+          this.$.myAjax1.generateRequest()
+        },
+      });
+    })();
+  </script>
+
+</dom-module>
