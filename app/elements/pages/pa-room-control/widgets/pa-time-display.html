@@ -1,21 +1,61 @@
 <link rel="import" href="../../../../bower_components/web-socket/web-socket.html">
-<link rel="import" href="../../../../bower_components/time-display/time-display.html">
 
 <dom-module id="pa-time-display">
   <template>
-    <style include="shared-styles"></style>
+    <style include="shared-styles">
+      paper-button {
+        margin: 5px 5px 5px 5px;
+      }
 
-    <div>
+      .max-div {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+      }
+
+      paper-button[toggles][active][raised].colorful {
+        background-color: rgba(66, 133, 244, 0.75);
+      }
+
+      .center-hor-div {
+        display: table;
+        margin: 0 auto;
+      }
+
+      .paper-font-display4 {
+        @apply(--paper-font-display3);
+      }
+
+      .center-vert-div {
+        display: table-cell;
+        vertical-align: middle;
+      }
+
+    </style>
+
+    <div class="max-div">
       <web-socket id="websocket"
                   url="ws://127.0.0.1:8080/time_remaining"
                   auto
-                  on-open="_openSocket"
                   on-message="_onMessage"
                   on-error="_onError">
       </web-socket>
-
-      <time-display id="time" datetime="2018-06-28T12:00:00.00" format="hh:mm:ss"></time-display>
-
+      <iron-ajax id="ajax"
+                 auto
+                 method="post"
+                 url="http://127.0.0.1:8080/time"
+                 handle-as="json"
+                 content-type="application/json">
+      </iron-ajax>
+      <div class="center-hor-div" style="height: 20vh;">
+        <div class="center-vert-div">
+          <p id="clock" class="black paper-font-display4">No time available</p>
+        </div>
+      </div>
+      <div class="center-hor-div">
+        <paper-button id="startB" toggles raised active class="colorful" on-click="startTime">start</paper-button>
+        <paper-button id="restartB" raised class="colorful custom" on-click="restartTime">restart</paper-button>
+      </div>
     </div>
   </template>
 
@@ -25,6 +65,25 @@
 
       Polymer({
         is: 'pa-time-display',
+
+        properties: {
+          start: false,
+          time: Number
+        },
+
+        setStartButton: function() {
+          this.$.startB.textContent = 'start';
+          var paperButton = this.querySelector('paper-button');
+          paperButton.active = true;
+          this.start = false;
+        },
+
+        setPauseButton: function() {
+          var paperButton = this.querySelector('paper-button');
+          paperButton.active = false;
+          this.$.startB.textContent = 'pause';
+          this.start = true;
+        },
 
         toHHMMSS: function (timeInSeconds) {
           var sec_num = parseInt(timeInSeconds, 10);
@@ -38,16 +97,44 @@
           return hours+':'+minutes+':'+seconds;
         },
 
-        _openSocket: function (event) {
-          console.log('WebSocket opened');
-        },
-
         _onMessage: function (event) {
-          this.$.time.datetime = '2018-06-28T'+this.toHHMMSS(event.detail);
+          if(this.time === event.detail) {
+            this.setStartButton();
+          } else {
+            this.setPauseButton();
+          }
+          if(event.detail <= 300 && event.detail > 60) {
+            this.$.clock.style.color = 'orange';
+          } else if(event.detail <= 60) {
+            this.$.clock.style.color = 'red';
+          } else {
+            this.$.clock.style.color = 'black';
+          }
+          this.time = event.detail;
+          this.$.clock.innerHTML = this.toHHMMSS(event.detail);
         },
 
         _onError: function (event) {
           console.log('WebSocket error'+event.detail);
+          this.$.clock.innerHTML = 'Server Error';
+        },
+
+        startTime: function() {
+          if(!this.start) {
+            this.$.ajax.body = JSON.stringify({'status': 'start'});
+            this.$.startB.textContent = 'pause';
+            this.start = true;
+          } else {
+            this.$.ajax.body = JSON.stringify({'status': 'pause'});
+            this.$.startB.textContent = 'start';
+            this.start = false;
+          }
+          this.$.ajax.generateRequest();
+        },
+
+        restartTime: function() {
+          this.$.ajax.body = JSON.stringify({'status': 'restart'});
+          this.$.ajax.generateRequest();
         }
 
       });
