@@ -1,0 +1,87 @@
+<link rel="import" href="../../../../bower_components/web-socket/web-socket.html">
+
+<dom-module id="pa-time-display">
+  <template>
+    <style include="shared-styles">
+      .max-div {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+      }
+
+      .center-hor-div {
+        display: table;
+        margin: 0 auto;
+      }
+
+      .paper-font-display4 {
+        @apply(--paper-font-display3);
+      }
+
+      .center-vert-div {
+        display: table-cell;
+        vertical-align: middle;
+      }
+
+    </style>
+
+    <div class="max-div">
+      <web-socket id="websocket"
+                  url="ws://127.0.0.1:8080/time_remaining"
+                  auto
+                  on-message="_onMessage"
+                  on-error="_onError">
+      </web-socket>
+      <div class="center-hor-div">
+        <div >
+          <p id="clock" class="black paper-font-display4">No time available</p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'pa-time-display',
+
+        properties: {
+          time: Number
+        },
+
+        toHHMMSS: function (timeInSeconds) {
+          var sec_num = parseInt(timeInSeconds, 10);
+          var hours   = Math.floor(sec_num / 3600);
+          var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+          var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+          if (hours   < 10) {hours   = '0'+hours;}
+          if (minutes < 10) {minutes = '0'+minutes;}
+          if (seconds < 10) {seconds = '0'+seconds;}
+          return hours+':'+minutes+':'+seconds;
+        },
+
+        _onMessage: function (event) {
+          if(event.detail <= 300 && event.detail > 60) {
+            this.$.clock.style.color = 'orange';
+          } else if(event.detail <= 60) {
+            this.$.clock.style.color = 'red';
+          } else {
+            this.$.clock.style.color = 'black';
+          }
+          this.time = event.detail;
+          this.$.clock.innerHTML = this.toHHMMSS(event.detail);
+        },
+
+        _onError: function (event) {
+          console.log('WebSocket error'+event.detail);
+          this.$.clock.innerHTML = 'Server Error';
+        }
+
+      });
+    })();
+  </script>
+
+</dom-module>

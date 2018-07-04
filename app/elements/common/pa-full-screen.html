@@ -1,0 +1,35 @@
+<link rel="import" href="test.js">
+<dom-module id="pa-full-screen">
+  <template>
+    <style include="shared-styles"></style>
+    <style>
+      :host {
+        margin-right: -15px;
+        padding-bottom: 12px;
+        @apply(--layout);
+        @apply(--layout-horizontal);
+      }
+
+      body {
+        overflow: hidden
+        background: #111
+      }
+
+    </style>
+    <div>
+      canvas
+    </div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'pa-full-screen'
+
+      });
+    })();
+  </script>
+
+</dom-module>

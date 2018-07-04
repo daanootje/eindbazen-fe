@@ -48,37 +48,35 @@
 <span id="browser-sync-binding"></span>
 <template is="dom-bind" id="app">
 
-  <pa-auth-data id="data" location='{{location}}' user="{{user}}" todos="{{todos}}" profile="{{profile}}"></pa-auth-data>
+  <div style="height: 100%;width: 100%;">
+    <paper-scroll-header-panel fixed>
 
-  <paper-scroll-header-panel fixed>
+      <paper-toolbar class="top-toolbar">
+        <h1><a data-route="dashboard" href="/" on-click="onDataRouteClick">Pandora</a></h1>
+        <paper-icon-button icon="menu" class="toggle-drawer" on-click="toggleDrawer"></paper-icon-button>
+        <span class="flex"></span>
+        <paper-icon-button icon="refresh" class="refresh-icon"></paper-icon-button>
+      </paper-toolbar>
 
-    <paper-toolbar class="top-toolbar">
-      <h1><a data-route="dashboard" href="/" on-click="onDataRouteClick">Pandora</a></h1>
-      <paper-icon-button icon="menu" class="toggle-drawer" on-click="toggleDrawer"></paper-icon-button>
-      <span class="flex"></span>
-      <paper-icon-button icon="refresh" class="refresh-icon"></paper-icon-button>
-      <pa-search></pa-search>
-      <pa-auth-info location='{{location}}' user="{{user}}"  profile='{{profile}}' on-sign-out="signOut" on-sign-in="signIn"></pa-auth-info>
-    </paper-toolbar>
+      <paper-drawer-panel id="paperDrawerPanel">
 
-    <paper-drawer-panel id="paperDrawerPanel">
+        <paper-scroll-header-panel drawer>
 
-      <paper-scroll-header-panel drawer>
+          <pa-menu route="{{route}}" user="{{user}}"></pa-menu>
 
-        <pa-menu route="{{route}}" user="{{user}}"></pa-menu>
+        </paper-scroll-header-panel>
 
-      </paper-scroll-header-panel>
+        <paper-scroll-header-panel main>
 
-      <paper-scroll-header-panel main>
+          <pa-pages route="{{route}}" user="{{user}}" profile='{{profile}}' todos="{{todos}}" on-sign-in="signIn"></pa-pages>
 
-        <pa-pages route="{{route}}" user="{{user}}" profile='{{profile}}' todos="{{todos}}" on-sign-in="signIn"></pa-pages>
+          <pa-footer></pa-footer>
+        </paper-scroll-header-panel>
 
-        <pa-footer></pa-footer>
-      </paper-scroll-header-panel>
+      </paper-drawer-panel>
 
-    </paper-drawer-panel>
-
-  </paper-scroll-header-panel>
+    </paper-scroll-header-panel>
+  </div>
 
 </template>
 
