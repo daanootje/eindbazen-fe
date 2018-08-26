@@ -35,7 +35,7 @@
 
     <div class="max-div">
       <web-socket id="websocket"
-                  url="ws://127.0.0.1:8080/time_remaining"
+                  url="ws://127.0.0.1:8080/time_remaining2"
                   auto
                   on-message="_onMessage"
                   on-error="_onError">
@@ -135,10 +135,12 @@
         restartTime: function() {
           this.$.ajax.body = JSON.stringify({'status': 'restart'});
           this.$.ajax.generateRequest();
+          this.setStartButton();
         }
 
       });
+
+
     })();
   </script>
-
 </dom-module>

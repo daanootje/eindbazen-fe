@@ -1,0 +1,71 @@
+<link rel="import" href="../../../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../../../bower_components/paper-progress/paper-progress.html">
+
+<dom-module id="pa-input-puzzles">
+  <template>
+    <style include="shared-styles">
+    :host {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    iron-list {
+      flex: 1 1 auto;
+    }
+
+    </style>
+
+    <iron-ajax id="ajax"
+               auto
+               method="get"
+               url="http://127.0.0.1:8080/puzzle"
+               handle-as="json"
+               content-type="application/json"
+               on-response="_handleResponse">
+    </iron-ajax>
+    <iron-list items="[[puzzles]]">
+      <template>
+        <template is="dom-if" if="{{puzzles}}">
+          <paper-progress value="10" indeterminate="true" style="width:100%;"></paper-progress>
+        </template>
+        <get-products-service loading="{{puzzles}}"></get-products-service>
+      </template>
+      <!--<template>-->
+        <!--<div>-->
+          <!--<paper-progress indeterminate class="slow blue" data-label="50% Complete"></paper-progress>-->
+          <!--[[item]]-->
+        <!--</div>-->
+      <!--</template>-->
+    </iron-list>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'pa-input-puzzles',
+
+        properties: {
+          puzzles: {
+            type: Array
+          }
+        },
+
+        _handleResponse: function(event){
+            console.log("_handleResponse... ");
+            console.log(event.detail.response.entity);
+            this.puzzles = event.detail.response.entity;
+            console.log(this.puzzles);
+            this.puzzles.forEach(function (elem) {
+              console.log(elem);
+            });
+
+        }
+
+      });
+    })();
+  </script>
+
+</dom-module>
