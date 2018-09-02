@@ -1,43 +1,126 @@
-<link rel="import" href="../../../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../../bower_components/neon-animation/animations/fade-in-animation.html">
 <link rel="import" href="../../../../bower_components/paper-progress/paper-progress.html">
 
 <dom-module id="pa-input-puzzles">
   <template>
     <style include="shared-styles">
-    :host {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+     .div-container {
+        height: 300px;
+        overflow-y: auto;
+     }
 
-    iron-list {
-      flex: 1 1 auto;
-    }
+     .div-scroll {
+        width: 100%;
+        max-width: 100%;
+        background-color: transparent;
+        border-collapse: collapse;
+        border-spacing: 0;
+     }
+
+     .line{
+        border-bottom: 1px solid black;
+     }
+
+     paper-button {
+        margin: 5px 5px 5px 5px;
+     }
+
+     paper-button[toggles][active][raised].colorful {
+        background-color: rgba(66, 133, 244, 0.75);
+     }
+
+     paper-progress {
+        margin: 5px 5px 5px 5px;
+        float: left;
+     }
+
+     paper-progress.blue {
+      --paper-progress-active-color: var(--paper-light-blue-500);
+     }
+
+     paper-progress.red {
+      --paper-progress-active-color: var(--paper-red-500);
+     }
+
+     paper-progress.green {
+      --paper-progress-active-color: var(--paper-light-green-500);
+     }
+
+
+     .inline-block-child {
+        display: inline-block;
+     }
+
+     .inline-block-child-right {
+        display: inline-block;
+        float: right;
+     }
+
+     .left {
+        float: left;
+     }
 
     </style>
 
-    <iron-ajax id="ajax"
+    <iron-ajax id="ajaxGet"
                auto
                method="get"
                url="http://127.0.0.1:8080/puzzle"
                handle-as="json"
                content-type="application/json"
-               on-response="_handleResponse">
+               on-response="_handleResponseGet">
     </iron-ajax>
-    <iron-list items="[[puzzles]]">
-      <template>
-        <template is="dom-if" if="{{puzzles}}">
-          <paper-progress value="10" indeterminate="true" style="width:100%;"></paper-progress>
+    <iron-ajax id="ajaxGetPuzzleState"
+               auto
+               method="get"
+               url="http://127.0.0.1:8080/puzzle/states"
+               handle-as="json"
+               content-type="application/json"
+               on-response="_handleResponseGetPuzzleState">
+    </iron-ajax>
+    <iron-ajax id="ajaxPost"
+               auto
+               method="post"
+               url="http://127.0.0.1:8080/puzzle"
+               handle-as="json"
+               content-type="application/json">
+    </iron-ajax>
+    <div class="div-container">
+      <div class="div-scroll">
+        <template is="dom-repeat" id="puzzleList" items="[[puzzles]]" index-as="index">
+            <div class='parent'>
+              <b>[[item]]</b>
+              <div class='line'>
+                <div class='child inline-block-child'>
+                  <div>
+                    <div class='child inline-block-child'>
+                      Status:
+                    </div>
+                    <div class='child inline-block-child'>
+                      <cat-text id="[[item]]_puzzleStatus" transition-type="slide" slide-offset="180" transition-direction="right" transition-duration="2" transition-delay="0">
+                        Unknown
+                      </cat-text>
+                    </div>
+                  </div>
+                  <div>
+                    <paper-progress id="[[item]]_puzzleProgress" value="100" class="red"></paper-progress>
+                  </div>
+                </div>
+                <div class='child inline-block-child-right'>
+                  <paper-icon-button id="[[item]]_resetB" icon="autorenew" on-click="buttonResetPress"></paper-icon-button>
+                </div>
+                <div class='child inline-block-child-right'>
+                  <paper-icon-button id="[[item]]_finishB" icon="done" on-click="buttonFinishPress"></paper-icon-button>
+                </div>
+                <div class='child inline-block-child-right' >
+                  <paper-icon-button id$="[[item]]_startB" icon="play-arrow" on-click="buttonStartPress"></paper-icon-button>
+                </div>
+              </div>
+            </div>
         </template>
-        <get-products-service loading="{{puzzles}}"></get-products-service>
-      </template>
-      <!--<template>-->
-        <!--<div>-->
-          <!--<paper-progress indeterminate class="slow blue" data-label="50% Complete"></paper-progress>-->
-          <!--[[item]]-->
-        <!--</div>-->
-      <!--</template>-->
-    </iron-list>
+      </div>
+    </div>
   </template>
 
   <script>
@@ -50,18 +133,110 @@
         properties: {
           puzzles: {
             type: Array
+          },
+          start: {
+            type: Boolean,
+            value: false
           }
         },
 
-        _handleResponse: function(event){
-            console.log("_handleResponse... ");
-            console.log(event.detail.response.entity);
-            this.puzzles = event.detail.response.entity;
-            console.log(this.puzzles);
-            this.puzzles.forEach(function (elem) {
-              console.log(elem);
-            });
+        _updateData: function() {
+          this.async(function() {
+            this.$.ajaxGetPuzzleState.generateRequest();
+          }, 500);
+        },
 
+        _handleResponseGet: function(event){
+          this.puzzles = event.detail.response.entity;
+        },
+
+        _handleResponseGetPuzzleState: function(event){
+          var dictionary = event.detail.response.entity;
+          for (var key in dictionary) {
+              if (dictionary.hasOwnProperty(key)) {
+                  var status = this.$$('#' + key + '_puzzleStatus').textContent;
+                  if(status !== dictionary[key]) {
+                    var progressBar = this.$$('#' + key + '_puzzleProgress');
+                    var newStatus = dictionary[key];
+                    if(dictionary[key] === 'init') {
+                      this.$$('#' + key + '_startB').icon = 'play-arrow';
+                      this.start = false;
+                      progressBar.indeterminate = false;
+                      progressBar.value = 100;
+                      progressBar.classList.remove('green');
+                      progressBar.classList.remove('blue');
+                      progressBar.className += ' red';
+                    } else if(dictionary[key] === ' start') {
+                      this.$$('#' + key + '_startB').icon = 'pause';
+                      this.start = true;
+                      progressBar.indeterminate = true;
+                      progressBar.classList.remove('red');
+                      progressBar.classList.remove('green');
+                      progressBar.className += ' blue';
+                    } else if(dictionary[key] === 'stop') {
+                      this.$$('#' + key + '_startB').icon = 'play-arrow';
+                      this.start = false;
+                      progressBar.indeterminate = false;
+                      progressBar.value = 100;
+                      progressBar.classList.remove('green');
+                      progressBar.classList.remove('blue');
+                      progressBar.className += ' red';
+                    } else if(dictionary[key] === 'finish') {
+                      this.$$('#' + key + '_startB').icon = 'play-arrow';
+                      this.start = false;
+                      progressBar.indeterminate = false;
+                      progressBar.value = 100;
+                      progressBar.classList.remove('red');
+                      progressBar.classList.remove('blue');
+                      progressBar.className += ' green';
+                    } else {
+                      this.$$('#' + key + '_startB').icon = 'play-arrow';
+                      this.start = false;
+                      progressBar.indeterminate = false;
+                      progressBar.value = 100;
+                      progressBar.classList.remove('green');
+                      progressBar.classList.remove('blue');
+                      progressBar.className += ' red';
+                      newStatus = 'Unknown Status';
+                    }
+                    this.$$('#' + key + '_puzzleStatus').textContent = newStatus;
+                  }
+              }
+          }
+          this._updateData();
+        },
+
+        buttonStartPress: function(e) {
+          var name = e.model.item;
+          if(!this.start) {
+            this.$$('#' + name + '_startB').icon = 'pause';
+            this.$.ajaxPost.body = JSON.stringify({'state': 'start'});
+            this.start = true;
+          } else {
+            this.$$('#' + name + '_startB').icon = 'play-arrow';
+            this.$.ajaxPost.body = JSON.stringify({'state': 'stop'});
+            this.start = false;
+          }
+          this.$.ajaxPost.url = 'http://127.0.0.1:8080/puzzle/' + name;
+          this.$.ajaxPost.generateRequest();
+        },
+
+        buttonFinishPress: function(e){
+          var name = e.model.item;
+          this.state = false;
+          this.$$('#' + name + '_startB').icon = 'play-arrow';
+          this.$.ajaxPost.url = 'http://127.0.0.1:8080/puzzle/' + name;
+          this.$.ajaxPost.body = JSON.stringify({'state': 'finish'});
+          this.$.ajaxPost.generateRequest();
+        },
+
+        buttonResetPress: function(e){
+          var name = e.model.item;
+          this.state = false;
+          this.$$('#' + name + '_startB').icon = 'play-arrow';
+          this.$.ajaxPost.url = 'http://127.0.0.1:8080/puzzle/' + name;
+          this.$.ajaxPost.body = JSON.stringify({'state': 'reset'});
+          this.$.ajaxPost.generateRequest();
         }
 
       });

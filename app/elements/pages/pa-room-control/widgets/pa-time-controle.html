@@ -47,14 +47,41 @@
                  handle-as="json"
                  content-type="application/json">
       </iron-ajax>
+      <iron-ajax id="ajaxRoomPorts"
+                 auto
+                 method="get"
+                 url="http://127.0.0.1:8080/room/ports"
+                 handle-as="json"
+                 content-type="application/json"
+                 on-response="_handleResponseGetRoom">
+      </iron-ajax>
+      <iron-ajax id="ajaxRoom"
+                 auto
+                 method="post"
+                 url="http://127.0.0.1:8080/room/stop"
+                 handle-as="json"
+                 content-type="application/json"
+                 on-response="_handleResponsePostRoom">
+      </iron-ajax>
       <div class="center-hor-div" style="height: 20vh;">
         <div class="center-vert-div">
           <p id="clock" class="black paper-font-display4">No time available</p>
         </div>
       </div>
       <div class="center-hor-div">
-        <paper-button id="startB" toggles raised active class="colorful" on-click="startTime">start</paper-button>
-        <paper-button id="restartB" raised class="colorful custom" on-click="restartTime">restart</paper-button>
+        <paper-button id="startB" disabled$="[[disableTime]]" toggles raised active class="colorful" on-click="startTime">start</paper-button>
+        <paper-button id="restartB" disabled$="[[disableTime]]" raised class="colorful custom" on-click="restartTime">restart</paper-button>
+      </div>
+      <div class="center-hor-div">
+        <paper-button id="startRoomB" disabled$="[[disableRoom]]" toggles raised active class="colorful" on-click="startRoom">start</paper-button>
+        <paper-button id="restartRoomB" disabled$="[[disableRoom]]" raised class="colorful custom" on-click="restartRoom">restart</paper-button>
+        <paper-button id="finishRoomB" disabled$="[[disableRoom]]" raised class="colorful custom" on-click="finishRoom">finish</paper-button>
+          <paper-dropdown-menu selected="{{selected}}" label="ports" style="width:80px">
+            <template repeat="{{item in items}}">
+              <paper-item label="{{item.name}}"></paper-item>
+            </template>
+          </paper-dropdown-menu>
+        <paper-icon-button id="refresh" icon="refresh" on-click="buttonResetPress"></paper-icon-button>
       </div>
     </div>
   </template>
@@ -67,22 +94,47 @@
         is: 'pa-time-controle',
 
         properties: {
+          ports: {
+            type: Array
+          },
+          disableTime: true,
+          disableRoom: true,
           start: false,
-          time: Number
+          start_R: false,
+          time: Number,
+          selected: String
+        },
+
+        buttonResetPress: function(e){
+          this.$.ajaxRoomPorts.generateRequest();
         },
 
         setStartButton: function() {
-          this.$.startB.textContent = 'start';
-          var paperButton = this.querySelector('paper-button');
+          var paperButton = this.$.startB;
+          paperButton.textContent = 'start';
           paperButton.active = true;
           this.start = false;
         },
 
         setPauseButton: function() {
-          var paperButton = this.querySelector('paper-button');
+          var paperButton = this.$.startB;
           paperButton.active = false;
           this.$.startB.textContent = 'pause';
           this.start = true;
+        },
+
+        setStartRoomButton: function() {
+          var paperButton = this.$.startRoomB;
+          paperButton.textContent = 'start';
+          paperButton.active = true;
+          this.start_R = false;
+        },
+
+        setPauseRoomButton: function() {
+          var paperButton = this.$.startRoomB;
+          paperButton.active = false;
+          this.$.startRoomB.textContent = 'pause';
+          this.start_R = true;
         },
 
         toHHMMSS: function (timeInSeconds) {
@@ -136,6 +188,47 @@
           this.$.ajax.body = JSON.stringify({'status': 'restart'});
           this.$.ajax.generateRequest();
           this.setStartButton();
+        },
+
+        startRoom: function() {
+          if(!this.start_R) {
+            this.disableTime = false;
+            this.$.ajaxRoom.url = 'http://127.0.0.1:8080/room/start';
+            this.$.ajaxRoom.body = JSON.stringify({'port': this.selected});
+            this.setPauseRoomButton();
+            this.start_R = true;
+          } else {
+            this.disableTime = true;
+            this.$.ajaxRoom.url = 'http://127.0.0.1:8080/room/stop';
+            this.start_R = false;
+            this.setStartRoomButton();
+          }
+          this.$.ajaxRoom.generateRequest();
+        },
+
+        restartRoom: function() {
+          this.disableTime = true;
+          this.$.ajaxRoom.url = 'http://127.0.0.1:8080/room/reset';
+          this.$.ajaxRoom.generateRequest();
+          this.setStartRoomButton();
+        },
+
+        finishRoom: function() {
+          this.disableTime = true;
+          this.$.ajaxRoom.url = 'http://127.0.0.1:8080/room/finish';
+          this.$.ajaxRoom.generateRequest();
+          this.setStartRoomButton();
+        },
+
+        _handleResponseGetRoom: function(event){
+          this.ports = event.detail.response.entity;
+          if (typeof this.ports !== 'undefined' && this.ports.length > 0) {
+            this.disableRoom = false;
+          } else {
+            this.ports.label = 'No available ports';
+            this.disableRoom = true;
+          }
+          this.disableTime = true;
         }
 
       });
